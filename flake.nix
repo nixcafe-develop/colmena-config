@@ -44,6 +44,11 @@
       inputs.home-manager.follows = "home-manager";
     };
 
+    colmena = {
+      url = "github:zhaofengli/colmena";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # Replace this with your host's secret, which can be generated using this template
     # https://github.com/nixcafe/develop-my-secrets
     # or local secrets
@@ -85,7 +90,7 @@
         cattery-modules.homeModules.default
       ];
     in
-    lib.mkFlake {
+    (lib.mkFlake {
 
       channels-config = {
         allowUnfree = true;
@@ -101,6 +106,11 @@
 
       homes.modules = homes-modules;
 
-      outputs-builder = channels: { formatter = channels.nixpkgs.nixfmt-rfc-style; };
+      outputs-builder = channels: {
+        formatter = channels.nixpkgs.nixfmt-rfc-style;
+      };
+    })
+    // {
+      colmenaHive = import ./colmena/colmenaHive { inherit inputs; };
     };
 }
