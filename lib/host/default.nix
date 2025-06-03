@@ -1,6 +1,9 @@
 {
   # default vars
   host = {
+    # timezone and locale
+    timezone = "America/New_York";
+    defaultLocale = "en_US.UTF-8";
     # Your name
     name = "nixos";
     # Your real name (currently used as git name)
