@@ -107,7 +107,7 @@
       homes.modules = homes-modules;
 
       outputs-builder = channels: {
-        formatter = channels.nixpkgs.nixfmt-rfc-style;
+        formatter = channels.nixpkgs.nixfmt;
       };
     })
     // {
