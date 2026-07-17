@@ -1,40 +1,12 @@
 # Nix Flake · Colmena Deployment
 
-> purr · nixos · colmena · home-manager · cattery-modules · reproducible · nix-flake
+> purr · git-hooks · nixos · colmena · nix-flake
 
 Nix flake template for NixOS configuration with Colmena deployment — extends [nix-config](https://github.com/nixcafe/nix-config) with remote deployment, `colmenaHive` output, and [nixos-generators](https://github.com/nix-community/nixos-generators) for building ISO/VM images.
 
 Part of the [develop-templates](https://github.com/nixcafe/develop-templates) collection (`nix flake init`-ready).
 
-## What's Inside
-
-| Component | Purpose |
-|-----------|---------|
-| `nixosConfigurations` | NixOS system builds (`systems/`) |
-| `darwinConfigurations` | macOS system builds (`systems/aarch64-darwin/`) |
-| `homeConfigurations` | Standalone home-manager builds (`homes/`) |
-| `colmenaHive` | Colmena deployment hive — remote apply to fleets |
-| `colmena` | Colmena CLI for stateless remote deployment |
-| `packages` | NixOS image generators (ISO, VM, etc.) |
-| `formatter` | `nixfmt` for canonical formatting |
-| `checks.git-hooks` | Pre-commit: nixfmt, deadnix, statix |
-| `cattery-modules` | Pre-built NixOS / darwin / home-manager modules |
-| Home auto-linking | `user@host` homes from `homes/` auto-injected into matching systems |
-
-### Flake Inputs
-
-| Input | Role |
-|-------|------|
-| [purr](https://flakehub.com/f/nixcafe/purr) | Flake framework — standardises NixOS/darwin/home-manager wiring |
-| [colmena](https://colmena.cli.rs) | Stateless NixOS remote deployment tool |
-| [cattery-modules](https://flakehub.com/f/nixcafe/cattery-modules) | Reusable opinionated module collection |
-| [home-manager](https://github.com/nix-community/home-manager) | User environment management |
-| [nix-darwin](https://github.com/LnL7/nix-darwin) | macOS declarative configuration |
-| [nixos-hardware](https://github.com/NixOS/nixos-hardware) | Hardware-specific NixOS modules |
-| [nixos-generators](https://github.com/nix-community/nixos-generators) | ISO / VM / cloud image builders |
-| [git-hooks.nix](https://flakehub.com/f/cachix/git-hooks.nix) | Pre-commit hook automation |
-
-## Getting Started
+## Quick Start
 
 ### `nix flake init`
 
@@ -56,23 +28,26 @@ nix flake init -t beans#colmena-config
 gh repo create my-colmena-config --template nixcafe/colmena-config --clone
 ```
 
-### Enter the Dev Shell & Deploy
-
-Clone the repo and enter the dev shell:
+### Enter the Dev Shell
 
 ```bash
-git clone <repo-url> && cd colmena-config
-direnv allow          # or: nix develop
+direnv allow       # or: nix develop
 ```
 
-The dev shell provides:
+## What's Inside
 
-| Tool | Purpose |
-|------|---------|
-| `colmena` | Remote deployment CLI |
-| `nixfmt` | Canonical Nix formatter |
-| `deadnix` | Find dead Nix code |
-| `statix` | Lint & suggest improvements |
+| Component | Purpose |
+|-----------|---------|
+| `nixosConfigurations` | NixOS system builds (`systems/`) |
+| `darwinConfigurations` | macOS system builds (`systems/aarch64-darwin/`) |
+| `homeConfigurations` | Standalone home-manager builds (`homes/`) |
+| `colmenaHive` | Colmena deployment hive — remote apply to fleets |
+| `colmena` | Colmena CLI for stateless remote deployment |
+| `packages` | NixOS image generators (ISO, VM, etc.) |
+| `formatter` | `nixfmt` for canonical formatting |
+| `checks.git-hooks` | Pre-commit: nixfmt, deadnix, statix |
+| `cattery-modules` | Pre-built NixOS / darwin / home-manager modules |
+| Home auto-linking | `user@host` homes from `homes/` auto-injected into matching systems |
 
 ## Customizing
 
@@ -146,7 +121,7 @@ Git hooks (defined in `checks/git-hooks/default.nix`) run automatically on `git 
 Manually run all hooks:
 
 ```bash
-pre-commit run --all-files
+nix flake check
 ```
 
 ## Project Structure
@@ -156,6 +131,7 @@ pre-commit run --all-files
 ├── flake.nix                     # Flake entrypoint — purr + colmenaHive
 ├── statix.toml                   # Statix lint rules
 ├── .envrc                        # direnv: `use flake`
+├── .gitignore
 │
 ├── colmena/
 │   └── colmenaHive/
@@ -207,6 +183,19 @@ pre-commit run --all-files
     └── git-hooks/
         └── default.nix           # Pre-commit hooks: nixfmt, deadnix, statix
 ```
+
+## Flake Inputs
+
+| Input | Role |
+|-------|------|
+| [purr](https://flakehub.com/f/nixcafe/purr) | Flake framework — standardises NixOS/darwin/home-manager wiring |
+| [colmena](https://colmena.cli.rs) | Stateless NixOS remote deployment tool |
+| [cattery-modules](https://flakehub.com/f/nixcafe/cattery-modules) | Reusable opinionated module collection |
+| [home-manager](https://github.com/nix-community/home-manager) | User environment management |
+| [nix-darwin](https://github.com/LnL7/nix-darwin) | macOS declarative configuration |
+| [nixos-hardware](https://github.com/NixOS/nixos-hardware) | Hardware-specific NixOS modules |
+| [nixos-generators](https://github.com/nix-community/nixos-generators) | ISO / VM / cloud image builders |
+| [git-hooks.nix](https://flakehub.com/f/cachix/git-hooks.nix) | Pre-commit hook automation |
 
 ## How It Differs from nix-config
 
