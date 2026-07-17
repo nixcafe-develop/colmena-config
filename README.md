@@ -1,122 +1,197 @@
-# NixOS Configuration with Colmena Deployment
+# Nix Flake · Colmena Deployment
 
-This repository contains a NixOS configuration that supports deployment using [Colmena](https://colmena.cli.rs/), a NixOS deployment tool.
+> purr · nixos · colmena · home-manager · cattery-modules · reproducible · nix-flake
 
-## Project Structure
+Nix flake template for NixOS configuration with Colmena deployment — extends [nix-config](https://github.com/nixcafe/nix-config) with remote deployment, `colmenaHive` output, and [nixos-generators](https://github.com/nix-community/nixos-generators) for building ISO/VM images.
 
+## What's Inside
+
+| Component | Purpose |
+|-----------|---------|
+| `nixosConfigurations` | NixOS system builds (`systems/`) |
+| `darwinConfigurations` | macOS system builds (`systems/aarch64-darwin/`) |
+| `homeConfigurations` | Standalone home-manager builds (`homes/`) |
+| `colmenaHive` | Colmena deployment hive — remote apply to fleets |
+| `packages` | NixOS image generators (ISO, VM, etc.) |
+| `formatter` | `nixfmt` for canonical formatting |
+| `checks.git-hooks` | Pre-commit: nixfmt, deadnix, statix |
+| `cattery-modules` | Pre-built NixOS / darwin / home-manager modules |
+| Home auto-linking | `user@host` homes from `homes/` auto-injected into matching systems |
+
+### Flake Inputs
+
+| Input | Role |
+|-------|------|
+| [purr](https://flakehub.com/f/nixcafe/purr) | Flake framework — standardises NixOS/darwin/home-manager wiring |
+| [colmena](https://colmena.cli.rs) | Stateless NixOS remote deployment tool |
+| [cattery-modules](https://flakehub.com/f/nixcafe/cattery-modules) | Reusable opinionated module collection |
+| [home-manager](https://github.com/nix-community/home-manager) | User environment management |
+| [nix-darwin](https://github.com/LnL7/nix-darwin) | macOS declarative configuration |
+| [nixos-hardware](https://github.com/NixOS/nixos-hardware) | Hardware-specific NixOS modules |
+| [nixos-generators](https://github.com/nix-community/nixos-generators) | ISO / VM / cloud image builders |
+| [git-hooks.nix](https://flakehub.com/f/cachix/git-hooks.nix) | Pre-commit hook automation |
+
+## Getting Started
+
+Clone the repo and enter the dev shell:
+
+```bash
+git clone <repo-url> && cd colmena-config
+direnv allow          # or: nix develop
 ```
-.
-├── colmena/              # Colmena deployment configuration
-│   └── colmenaHive/     # Colmena hive configuration
-├── systems/             # System-specific configurations
-│   └── x86_64-linux/    # x86_64 Linux system configurations
-├── modules/             # NixOS modules
-├── homes/              # Home-manager configurations
-├── lib/                # Utility functions and common configurations
-├── shells/             # Development shell configurations
-└── checks/             # System checks and validations
+
+The dev shell provides:
+
+| Tool | Purpose |
+|------|---------|
+| `colmena` | Remote deployment CLI |
+| `nixfmt` | Canonical Nix formatter |
+| `deadnix` | Find dead Nix code |
+| `statix` | Lint & suggest improvements |
+
+## Customizing
+
+### 1. Set Your Host Identity
+
+Edit `lib/host/default.nix`:
+
+```nix
+host = {
+  name = "myhost";
+  realName = "Jane Doe";
+  email.address = "jane@example.com";
+  timezone = "America/New_York";
+  authorizedKeys.keys = [ "ssh-ed25519 AAAAC3..." ];
+};
 ```
 
-## Configuration
+### 2. Add a System
 
-### Host Configuration
-
-The main host configuration is located at `./lib/host/default.nix`:
+Create a directory under `systems/<arch>/<hostname>/` with a `default.nix`. The framework auto-discovers it. Example `systems/x86_64-linux/myhost/default.nix`:
 
 ```nix
 {
-  # default vars
-  host = {
-    # Your name
-    name = "example";
-    # Your nickname (currently used as git name)
-    nickname = "example";
-    # Your email
-    email = "demo@example.com";
-    # If you want git to use gpg, you can fill in the key id here
-    signKey = "";
-    # Fill in the key that all your hosts trust. 
-    # Note that they have large permissions and need to be saved offline.
-    authorizedKeys.keys = [ ];
-    # starship config, see: https://starship.rs/config/
-    starship.settings = builtins.fromTOML (builtins.readFile ./config/starship.toml);
-  };
+  imports = [
+    ./hardware-configuration.nix
+  ];
+  networking.hostName = "myhost";
+  system.stateVersion = "24.11";
 }
 ```
 
-## Colmena Deployment
+Home-manager configurations in `homes/<arch>/<user>@<host>/` are auto-linked to matching systems.
 
-This project uses Colmena for deploying NixOS configurations to remote machines. The Colmena configuration is located in `colmena/colmenaHive/`.
+### 3. Deploy with Colmena
 
-### Prerequisites
-
-- Target systems must have NixOS already installed
-- SSH access to target machines
-- Proper network connectivity between deployment machine and targets
-
-### Deployment Configuration
-
-To configure deployments, modify `colmena/colmenaHive/deployments.nix`. Here's an example:
+Define deployment targets in `colmena/colmenaHive/deployments.nix`:
 
 ```nix
 {
-  "hostname" = {
+  myhost = {
     deployment = {
-      targetHost = "192.168.1.100";  # Target machine IP
-      targetUser = "root";           # SSH user
+      targetHost = "192.168.1.42";
       targetPort = 22;
+      targetUser = "root";
     };
   };
 }
 ```
 
-### Using Colmena
-
-The project includes Colmena in its development shell. You can use it in two ways:
-
-1. Using Nix shell:
-```bash
-nix develop
-colmena <command>
-```
-
-2. Using direnv (recommended):
-```bash
-direnv allow
-colmena <command>
-```
-
-### Common Colmena Commands
-
-- Deploy to all hosts:
-```bash
-colmena apply
-```
-
-- Deploy to specific host:
-```bash
-colmena apply --on hostname
-```
-
-- Check configuration without deploying:
-```bash
-colmena build
-```
-
-### System Configuration
-
-To modify system configurations:
-
-1. Navigate to `systems/x86_64-linux/`
-2. Create or modify host-specific configurations
-3. The configurations will be automatically picked up by Colmena
-
-## Development
-
-The project uses direnv for development environment management. Simply run:
+Common commands:
 
 ```bash
-direnv allow
+colmena apply              # deploy all hosts
+colmena apply --on myhost  # deploy single host
+colmena build              # build & evaluate without applying
+colmena push               # push system closures without activating
 ```
 
-This will set up the development environment with all necessary tools, including Colmena.
+Colmena builds each system's closure locally, copies it to the target via SSH, and activates the new generation — fast, parallel, and stateless.
+
+### 4. Pre-commit Hooks
+
+Git hooks (defined in `checks/git-hooks/default.nix`) run automatically on `git commit`:
+
+| Hook | Effect |
+|------|--------|
+| `nixfmt` | Re-formats staged `.nix` files |
+| `deadnix` | Strips dead code from staged `.nix` files |
+| `statix` | Lints staged `.nix` files (ignores `repeated_keys`, `.direnv`) |
+
+Manually run all hooks:
+
+```bash
+pre-commit run --all-files
+```
+
+## Project Structure
+
+```
+.
+├── flake.nix                     # Flake entrypoint — purr + colmenaHive
+├── statix.toml                   # Statix lint rules
+├── .envrc                        # direnv: `use flake`
+│
+├── colmena/
+│   └── colmenaHive/
+│       ├── default.nix           # Hive builder — maps nixosConfigurations → colmena nodes
+│       └── deployments.nix       # Target hosts, SSH addresses, ports
+│
+├── systems/                      # NixOS & darwin system definitions
+│   ├── aarch64-darwin/
+│   ├── x86_64-install-iso/
+│   └── x86_64-linux/
+│       ├── hostname-nixos/
+│       ├── hostname-server/
+│       └── hostname-wsl/
+│
+├── homes/                        # Standalone home-manager configs (user@host)
+│   ├── aarch64-darwin/
+│   ├── x86_64-install-iso/
+│   └── x86_64-linux/
+│       ├── nixos@hostname-nixos/
+│       ├── root@hostname-server/
+│       └── root@hostname-wsl/
+│
+├── modules/                      # Custom NixOS / darwin / home-manager modules
+│   ├── nixos/
+│   │   ├── secrets/
+│   │   └── user/
+│   ├── darwin/
+│   │   ├── brew/
+│   │   ├── secrets/
+│   │   └── user/
+│   └── home/
+│       ├── home/
+│       ├── secrets/
+│       └── user/
+│
+├── lib/                          # Shared utilities
+│   ├── host/
+│   │   ├── config/               # starship.toml, etc.
+│   │   └── default.nix           # Per-user identity defaults
+│   ├── module/
+│   │   └── default.nix           # System detection & module helpers
+│   └── secrets/
+│
+├── shells/
+│   └── default/
+│       └── default.nix           # Dev shell: colmena, nixfmt, deadnix, statix
+│
+└── checks/
+    └── git-hooks/
+        └── default.nix           # Pre-commit hooks: nixfmt, deadnix, statix
+```
+
+## How It Differs from nix-config
+
+| Feature | nix-config | colmena-config |
+|---------|:----------:|:--------------:|
+| `purr` flake framework | ✓ | ✓ |
+| NixOS system builds | ✓ | ✓ |
+| nix-darwin support | ✓ | ✓ |
+| home-manager | ✓ | ✓ |
+| cattery-modules | ✓ | ✓ |
+| **Colmena remote deployment** | ✗ | ✓ |
+| **`colmenaHive` output** | ✗ | ✓ |
+| **nixos-generators** | ✗ | ✓ |
