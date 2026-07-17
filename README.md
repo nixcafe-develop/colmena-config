@@ -4,6 +4,8 @@
 
 Nix flake template for NixOS configuration with Colmena deployment — extends [nix-config](https://github.com/nixcafe/nix-config) with remote deployment, `colmenaHive` output, and [nixos-generators](https://github.com/nix-community/nixos-generators) for building ISO/VM images.
 
+Part of the [develop-templates](https://github.com/nixcafe/develop-templates) collection (`nix flake init`-ready).
+
 ## What's Inside
 
 | Component | Purpose |
@@ -12,6 +14,7 @@ Nix flake template for NixOS configuration with Colmena deployment — extends [
 | `darwinConfigurations` | macOS system builds (`systems/aarch64-darwin/`) |
 | `homeConfigurations` | Standalone home-manager builds (`homes/`) |
 | `colmenaHive` | Colmena deployment hive — remote apply to fleets |
+| `colmena` | Colmena CLI for stateless remote deployment |
 | `packages` | NixOS image generators (ISO, VM, etc.) |
 | `formatter` | `nixfmt` for canonical formatting |
 | `checks.git-hooks` | Pre-commit: nixfmt, deadnix, statix |
@@ -32,6 +35,28 @@ Nix flake template for NixOS configuration with Colmena deployment — extends [
 | [git-hooks.nix](https://flakehub.com/f/cachix/git-hooks.nix) | Pre-commit hook automation |
 
 ## Getting Started
+
+### `nix flake init`
+
+```bash
+nix flake init -t "github:nixcafe/develop-templates#colmena-config" --refresh
+```
+
+Register an alias:
+```bash
+nix registry add beans "github:nixcafe/develop-templates"
+nix flake init -t beans#colmena-config
+```
+
+> **Tip**: With [cattery-modules](https://github.com/nixcafe/cattery-modules), `beans` is pre-registered.
+
+### Create from Template
+
+```bash
+gh repo create my-colmena-config --template nixcafe/colmena-config --clone
+```
+
+### Enter the Dev Shell & Deploy
 
 Clone the repo and enter the dev shell:
 
