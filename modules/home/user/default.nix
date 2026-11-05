@@ -19,7 +19,7 @@ in
     cattery.user = {
       addToAccounts = true;
       settings = lib.${namespace}.host // {
-        inherit (config.${namespace}.user) name;
+        name = config.home.username;
       };
     };
   };
