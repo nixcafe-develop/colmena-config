@@ -33,7 +33,7 @@
     };
 
     my-secrets = {
-      url = "github:nixcafe/develop-my-secrets";
+      url = "github:nixcafe-develop/nix-secrets";
       flake = false;
     };
   };
