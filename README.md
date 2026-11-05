@@ -2,7 +2,7 @@
 
 > purr · git-hooks · nixos · colmena · nix-flake
 
-Nix flake template for NixOS configuration with Colmena deployment — extends [nix-config](https://github.com/nixcafe/nix-config) with remote deployment, a `colmenaHive` output, and purr image recipes (ISO/VM/cloud) declared in each host's `meta.nix`.
+Nix flake template for NixOS configuration with Colmena deployment — extends [nix-config](https://github.com/nixcafe-develop/nix-config) with remote deployment, a `colmenaHive` output, and purr image recipes (ISO/VM/cloud) declared in each host's `meta.nix`.
 
 Part of the [develop-templates](https://github.com/nixcafe/develop-templates) collection (`nix flake init`-ready).
 
@@ -25,7 +25,7 @@ nix flake init -t beans#colmena-config
 ### Create from Template
 
 ```bash
-gh repo create my-colmena-config --template nixcafe/colmena-config --clone
+gh repo create my-colmena-config --template nixcafe-develop/colmena-config --clone
 ```
 
 ### Enter the Dev Shell
