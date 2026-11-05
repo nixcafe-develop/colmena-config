@@ -3,5 +3,4 @@
     room.desktop.wsl.enable = true;
   };
 
-
 }

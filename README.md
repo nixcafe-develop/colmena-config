@@ -2,7 +2,7 @@
 
 > purr · git-hooks · nixos · colmena · nix-flake
 
-Nix flake template for NixOS configuration with Colmena deployment — extends [nix-config](https://github.com/nixcafe/nix-config) with remote deployment, `colmenaHive` output, and [nixos-generators](https://github.com/nix-community/nixos-generators) for building ISO/VM images.
+Nix flake template for NixOS configuration with Colmena deployment — extends [nix-config](https://github.com/nixcafe/nix-config) with remote deployment, a `colmenaHive` output, and purr image recipes (ISO/VM/cloud) declared in each host's `meta.nix`.
 
 Part of the [develop-templates](https://github.com/nixcafe/develop-templates) collection (`nix flake init`-ready).
 
@@ -43,7 +43,7 @@ direnv allow       # or: nix develop
 | `homeConfigurations` | Standalone home-manager builds (`homes/`) |
 | `colmenaHive` | Colmena deployment hive — remote apply to fleets |
 | `colmena` | Colmena CLI for stateless remote deployment |
-| `packages` | NixOS image generators (ISO, VM, etc.) |
+| `images` | ISO / VM / cloud images declared in host `meta.nix` |
 | `formatter` | `nixfmt` for canonical formatting |
 | `checks.git-hooks` | Pre-commit: nixfmt, deadnix, statix |
 | `cattery-modules` | Pre-built NixOS / darwin / home-manager modules |
@@ -56,13 +56,13 @@ direnv allow       # or: nix develop
 Edit `lib/host/default.nix`:
 
 ```nix
-host = {
+{
   name = "myhost";
   realName = "Jane Doe";
   email.address = "jane@example.com";
-  timezone = "America/New_York";
+  timeZone = "America/New_York";
   authorizedKeys.keys = [ "ssh-ed25519 AAAAC3..." ];
-};
+}
 ```
 
 ### 2. Add a System
@@ -80,6 +80,17 @@ Create a directory under `systems/<arch>/<hostname>/` with a `default.nix`. The 
 ```
 
 Home-manager configurations in `homes/<arch>/<user>@<host>/` are auto-linked to matching systems.
+
+Image recipes are normal `x86_64-linux` hosts with a `meta.nix`:
+
+```nix
+# systems/x86_64-linux/installer/meta.nix
+{
+  images = [ "iso-installer" ];
+}
+```
+
+Build them with `nix build .#images.installer.iso-installer`. Image-only hosts are excluded from `nixosConfigurations` unless `deployable = true` is set in `meta.nix`.
 
 ### 3. Deploy with Colmena
 
@@ -121,7 +132,7 @@ Git hooks (defined in `checks/git-hooks/default.nix`) run automatically on `git 
 Manually run all hooks:
 
 ```bash
-nix flake check
+pre-commit run --all-files
 ```
 
 ## Project Structure
@@ -140,15 +151,14 @@ nix flake check
 │
 ├── systems/                      # NixOS & darwin system definitions
 │   ├── aarch64-darwin/
-│   ├── x86_64-install-iso/
 │   └── x86_64-linux/
 │       ├── hostname-nixos/
 │       ├── hostname-server/
-│       └── hostname-wsl/
+│       ├── hostname-wsl/
+│       └── <image-host>/meta.nix # Optional image recipes
 │
 ├── homes/                        # Standalone home-manager configs (user@host)
 │   ├── aarch64-darwin/
-│   ├── x86_64-install-iso/
 │   └── x86_64-linux/
 │       ├── nixos@hostname-nixos/
 │       ├── root@hostname-server/
@@ -194,7 +204,6 @@ nix flake check
 | [home-manager](https://github.com/nix-community/home-manager) | User environment management |
 | [nix-darwin](https://github.com/LnL7/nix-darwin) | macOS declarative configuration |
 | [nixos-hardware](https://github.com/NixOS/nixos-hardware) | Hardware-specific NixOS modules |
-| [nixos-generators](https://github.com/nix-community/nixos-generators) | ISO / VM / cloud image builders |
 | [git-hooks.nix](https://flakehub.com/f/cachix/git-hooks.nix) | Pre-commit hook automation |
 
 ## How It Differs from nix-config
@@ -208,4 +217,4 @@ nix flake check
 | cattery-modules | ✓ | ✓ |
 | **Colmena remote deployment** | ✗ | ✓ |
 | **`colmenaHive` output** | ✗ | ✓ |
-| **nixos-generators** | ✗ | ✓ |
+| **Image recipes (`images`)** | ✓ | ✓ |
